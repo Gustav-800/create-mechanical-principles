@@ -7,6 +7,7 @@ package dev.cmp.config;
 public record ComponentSettings(
         boolean clutchSoftStart,
         int clutchEngageDelayTicks,
+        float clutchAccelFraction,
         float syncEpsilon,
         boolean autoMergeOnSync,
         float reverseAccelMultiplier,
@@ -23,6 +24,7 @@ public record ComponentSettings(
 ) {
     public ComponentSettings {
         clutchEngageDelayTicks = Math.max(0, clutchEngageDelayTicks);
+        clutchAccelFraction = Math.max(0.001F, Math.min(1.0F, clutchAccelFraction));
         syncEpsilon = Math.max(0.0001F, syncEpsilon);
         reverseAccelMultiplier = Math.max(1.0F, Math.min(3.0F, reverseAccelMultiplier));
         reverseTransitionTicks = Math.max(0, reverseTransitionTicks);

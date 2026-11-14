@@ -41,6 +41,7 @@ public final class CMPConfig {
     // [components]
     public static final ModConfigSpec.BooleanValue CLUTCH_SOFT_START;
     public static final ModConfigSpec.IntValue CLUTCH_ENGAGE_DELAY;
+    public static final ModConfigSpec.DoubleValue CLUTCH_ACCEL;
     public static final ModConfigSpec.DoubleValue SYNC_EPSILON;
     public static final ModConfigSpec.BooleanValue AUTO_MERGE_ON_SYNC;
     public static final ModConfigSpec.DoubleValue REVERSE_ACCEL;
@@ -111,6 +112,8 @@ public final class CMPConfig {
                 .define("clutchSoftStart", true);
         CLUTCH_ENGAGE_DELAY = server.comment("Ticks the clutch output stays disengaged while starting.")
                 .defineInRange("clutchEngageDelayTicks", 5, 0, 200);
+        CLUTCH_ACCEL = server.comment("Clutch ramp fraction per tick. 0.15 reaches full speed in about 7 ticks.")
+                .defineInRange("clutchAccelFraction", 0.15D, 0.001D, 1.0D);
         SYNC_EPSILON = server.comment("Speed difference at which a soft-start component is considered synced, in RPM.")
                 .defineInRange("syncEpsilon", 0.5D, 0.0001D, 64.0D);
         AUTO_MERGE_ON_SYNC = server.comment("Merge the two sides into one rigid network once synced.")
@@ -207,6 +210,7 @@ public final class CMPConfig {
         ComponentSettings settings = new ComponentSettings(
                 CLUTCH_SOFT_START.get(),
                 CLUTCH_ENGAGE_DELAY.get(),
+                CLUTCH_ACCEL.get().floatValue(),
                 SYNC_EPSILON.get().floatValue(),
                 AUTO_MERGE_ON_SYNC.get(),
                 REVERSE_ACCEL.get().floatValue(),

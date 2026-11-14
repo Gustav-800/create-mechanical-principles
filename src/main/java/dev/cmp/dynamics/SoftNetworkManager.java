@@ -27,6 +27,7 @@ import java.util.WeakHashMap;
  */
 public final class SoftNetworkManager {
     private static final Map<Level, Map<Long, NetworkState>> STATES = new WeakHashMap<>();
+    private static final Map<Level, Map<Long, Long>> SUSPENDED = new WeakHashMap<>();
     private static final int MAX_CONSECUTIVE_ERRORS = 5;
 
     private static int consecutiveErrors;
@@ -80,6 +81,9 @@ public final class SoftNetworkManager {
     private static void process(Level level, KineticBlockEntity be, DynamicsSettings settings) {
         KineticNetwork network = be.getOrCreateNetwork();
         if (network == null || !network.initialized || network.id == null) {
+            return;
+        }
+        if (isSuspended(level, network.id)) {
             return;
         }
         if (network.members.isEmpty()) {
@@ -296,54 +300,6 @@ public final class SoftNetworkManager {
         }
     }
 
-    /**
-     * Create propagates speeds using {@code getTheoreticalSpeed()}. If a new
-     * member is attached while the source network is throttled, Create would
-     * capture the throttled value as that member's new nominal speed, causing a
-     * double reduction later. Before a topology change, put the affected
-     * network(s) back at nominal speed and let the solver re-evaluate the new
-     * load from a clean full-speed snapshot.
-     */
-    public static void prepareForTopologyChange(Level level, KineticBlockEntity be) {
-        if (level == null || level.isClientSide()) {
-            return;
-        }
-        Map<Long, NetworkState> levelStates = STATES.get(level);
-        if (levelStates == null || levelStates.isEmpty()) {
-            return;
-        }
-        java.util.Set<Long> ids = new java.util.HashSet<>();
-        if (be != null && be.network != null) {
-            ids.add(be.network);
-        }
-        if (be != null) {
-            for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
-                if (level.getBlockEntity(be.getBlockPos().relative(direction)) instanceof KineticBlockEntity other
-                        && other.network != null) {
-                    ids.add(other.network);
-                }
-            }
-        }
-        for (long id : ids) {
-            NetworkState state = levelStates.get(id);
-            if (state == null) {
-                continue;
-            }
-            for (KineticBlockEntity member : state.members) {
-                if (!isPresent(member)) {
-                    continue;
-                }
-                SoftSpeedAccess access = access(member);
-                access.cmp$applyDisplaySpeed(access.cmp$getNominalSpeed());
-            }
-            state.appliedFactor = 1.0F;
-            state.core.reset();
-            state.hasCache = false;
-            state.cachedVersion = -1;
-            state.lastZone = SoftDynamicsCore.Zone.STEADY;
-        }
-    }
-
     public static void topologyChanged(Level level, KineticBlockEntity be) {
         if (level == null || level.isClientSide()) {
             return;
@@ -417,10 +373,65 @@ public final class SoftNetworkManager {
 
     public static void clearLevel(Level level) {
         STATES.remove(level);
+        SUSPENDED.remove(level);
+    }
+
+    /**
+     * Temporarily keep the global solver away from a network while a component
+     * controller is deliberately running a two-sided speed profile. The
+     * suspension expires even if the component is removed mid-transition.
+     */
+    public static void suspend(Level level, long networkId, int ticks) {
+        if (level == null || level.isClientSide() || networkId < 0L) {
+            return;
+        }
+        long expiry = level.getGameTime() + Math.max(1, ticks);
+        SUSPENDED.computeIfAbsent(level, ignored -> new HashMap<>()).put(networkId, expiry);
+    }
+
+    public static void resume(Level level, long networkId) {
+        if (level == null) {
+            return;
+        }
+        Map<Long, Long> suspended = SUSPENDED.get(level);
+        if (suspended != null) {
+            suspended.remove(networkId);
+            if (suspended.isEmpty()) {
+                SUSPENDED.remove(level);
+            }
+        }
+        Map<Long, NetworkState> levelStates = STATES.get(level);
+        if (levelStates != null) {
+            NetworkState state = levelStates.get(networkId);
+            if (state != null) {
+                state.hasCache = false;
+                state.cachedVersion = -1;
+            }
+        }
+    }
+
+    private static boolean isSuspended(Level level, long networkId) {
+        Map<Long, Long> suspended = SUSPENDED.get(level);
+        if (suspended == null) {
+            return false;
+        }
+        Long expiry = suspended.get(networkId);
+        if (expiry == null) {
+            return false;
+        }
+        if (level.getGameTime() > expiry) {
+            suspended.remove(networkId);
+            if (suspended.isEmpty()) {
+                SUSPENDED.remove(level);
+            }
+            return false;
+        }
+        return true;
     }
 
     public static void reset() {
         STATES.clear();
+        SUSPENDED.clear();
         consecutiveErrors = 0;
         wasActive = false;
         budgetGameTime = Long.MIN_VALUE;

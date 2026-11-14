@@ -25,7 +25,6 @@ public abstract class RotationPropagatorMixin {
                 ci.cancel();
                 return;
             }
-            SoftNetworkManager.prepareForTopologyChange(world, added);
             SoftNetworkManager.topologyChanged(world, added);
         }
     }

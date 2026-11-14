@@ -8,6 +8,7 @@ package dev.cmp.components;
 public enum TransmissionPhase {
     DISENGAGED,
     SOFT_START,
+    RAMPING,
     SYNCED,
     FORWARD,
     REVERSING,

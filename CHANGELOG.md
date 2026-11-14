@@ -2,8 +2,16 @@
 
 ## 0.1.0 — first version
 
-- Added the network-level soft dynamics solver: overloaded networks decelerate to
-  `ω_eq = C / K` instead of being hard-stopped by Create's overstress flag.
+- Hot-plugging a component into a running network no longer forces the whole
+  network back to nominal speed before re-evaluating stress. The solver keeps
+  the current soft speed and only recalculates K/C.
+- Clutch now has a real speed ramp after the engage delay. The output side is
+  attached, captured, scaled down, and ramped back to full using
+  `clutchAccelFraction`; the input side is not touched.
+- Removed the sequenced gearshift zero-output startup gate. It prevented the
+  output side from being reattached by Create, so the gearbox could not transmit
+  power; native sequencer execution is restored.
+- Version changed to 0.1.0.
 - Added overload latching/hysteresis, stall entry/recovery, acceleration ceilings
   and a minimum acceleration floor.
 - Preserved each member's nominal speed in `SoftDynamicsNominalSpeed` NBT while

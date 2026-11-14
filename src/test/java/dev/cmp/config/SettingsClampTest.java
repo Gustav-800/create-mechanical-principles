@@ -28,9 +28,10 @@ class SettingsClampTest {
     @Test
     void componentThresholdsAreBounded() {
         ComponentSettings settings = new ComponentSettings(
-                true, -3, 0.0F, true, 9.0F, -2, true,
+                true, -3, 0.0F, 0.0F, true, 9.0F, -2, true,
                 0.0F, -4, -2.0F, false, -1.0F, true, 999, false);
         assertEquals(0, settings.clutchEngageDelayTicks());
+        assertTrue(settings.clutchAccelFraction() > 0.0F);
         assertTrue(settings.syncEpsilon() > 0.0F);
         assertEquals(3.0F, settings.reverseAccelMultiplier(), 1.0E-6F);
         assertEquals(0, settings.reverseTransitionTicks());
