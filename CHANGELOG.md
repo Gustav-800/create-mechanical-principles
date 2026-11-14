@@ -10,7 +10,8 @@
   `clutchAccelFraction`; the input side is not touched.
 - Removed the sequenced gearshift zero-output startup gate. It prevented the
   output side from being reattached by Create, so the gearbox could not transmit
-  power; native sequencer execution is restored.
+  power. Each step now reattaches at the new ratio and ramps the output members;
+  Create's instruction timer remains authoritative.
 - Fixed sleeping networks ignoring a freshly added load (the hot-plug
   transition appeared to have no dynamic acceleration).
 - Overloaded networks now snap to exactly 0 RPM instead of sleeping at a tiny

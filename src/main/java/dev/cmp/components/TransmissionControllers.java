@@ -4,6 +4,7 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.speedController.SpeedControllerBlockEntity;
 import com.simibubi.create.content.kinetics.transmission.ClutchBlockEntity;
 import com.simibubi.create.content.kinetics.transmission.GearshiftBlockEntity;
+import com.simibubi.create.content.kinetics.transmission.sequencer.SequencedGearshiftBlockEntity;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -15,6 +16,7 @@ import java.util.WeakHashMap;
 public final class TransmissionControllers {
     private static final Map<KineticBlockEntity, ClutchController> CLUTCHES = new WeakHashMap<>();
     private static final Map<KineticBlockEntity, GearshiftController> GEARSHIFTS = new WeakHashMap<>();
+    private static final Map<KineticBlockEntity, SequencerController> SEQUENCERS = new WeakHashMap<>();
 
     private TransmissionControllers() {
     }
@@ -27,6 +29,8 @@ public final class TransmissionControllers {
             CLUTCHES.computeIfAbsent(clutch, ignored -> new ClutchController(clutch)).tick();
         } else if (be instanceof GearshiftBlockEntity gearshift) {
             GEARSHIFTS.computeIfAbsent(gearshift, ignored -> new GearshiftController(gearshift)).tick();
+        } else if (be instanceof SequencedGearshiftBlockEntity sequencer) {
+            SEQUENCERS.computeIfAbsent(sequencer, ignored -> new SequencerController(sequencer)).tick();
         }
     }
 
@@ -36,6 +40,10 @@ public final class TransmissionControllers {
 
     public static GearshiftController gearshift(GearshiftBlockEntity gearshift) {
         return GEARSHIFTS.computeIfAbsent(gearshift, ignored -> new GearshiftController(gearshift));
+    }
+
+    public static SequencerController sequencer(SequencedGearshiftBlockEntity sequencer) {
+        return SEQUENCERS.computeIfAbsent(sequencer, ignored -> new SequencerController(sequencer));
     }
 
     public static float clutchModifier(ClutchBlockEntity clutch, net.minecraft.core.Direction face, float original) {
@@ -54,5 +62,6 @@ public final class TransmissionControllers {
     public static void clear() {
         CLUTCHES.clear();
         GEARSHIFTS.clear();
+        SEQUENCERS.clear();
     }
 }

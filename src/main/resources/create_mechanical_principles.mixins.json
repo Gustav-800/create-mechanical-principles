@@ -9,6 +9,7 @@
     "RotationPropagatorMixin",
     "ClutchBlockEntityMixin",
     "GearshiftBlockEntityMixin",
+    "SequencedGearshiftBlockEntityMixin",
     "SpeedControllerBlockEntityMixin"
   ],
   "client": [],
