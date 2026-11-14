@@ -1,0 +1,37 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+issueTrackerURL = "https://github.com/yourname/create-mechanical-principles/issues"
+displayURL = "https://github.com/yourname/create-mechanical-principles"
+
+[[mods]]
+modId = "create_mechanical_principles"
+version = "${version}"
+displayName = "Create: Mechanical Principles"
+authors = "Mechanical Principles contributors"
+logoFile = "icon.png"
+description = '''Turns Create's hard overstress stop into a smooth, network-wide soft dynamics system. Overloaded networks decelerate to their equilibrium speed instead of locking up, with inertia-aware clutch, gearshift, and sequencer behaviour.'''
+
+[[mixins]]
+config = "create_mechanical_principles.mixins.json"
+
+[[dependencies.create_mechanical_principles]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.197,22.0)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.create_mechanical_principles]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1]"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.create_mechanical_principles]]
+modId = "create"
+type = "required"
+versionRange = "[6.0.10,7.0)"
+ordering = "AFTER"
+side = "BOTH"

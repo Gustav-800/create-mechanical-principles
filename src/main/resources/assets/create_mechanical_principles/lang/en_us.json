@@ -1,0 +1,5 @@
+{
+  "cmp.hotplug.too_fast": "Hot-plug rejected: this network is running too fast. Slow it down or use a clutch.",
+  "cmp.hotplug.conflict": "Hot-plug rejected: the two sides are already running at different speeds.",
+  "cmp.hotplug.disabled": "Hot-plug is disabled on this server (hotPlugSpeedThreshold = 0)."
+}

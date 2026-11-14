@@ -1,0 +1,5 @@
+{
+  "cmp.hotplug.too_fast": "拒绝热插拔：该网络转速过高。请先降速，或使用离合器接入。",
+  "cmp.hotplug.conflict": "拒绝热插拔：两侧已经以不同转速运行。",
+  "cmp.hotplug.disabled": "本服务器已禁用热插拔（hotPlugSpeedThreshold = 0）。"
+}
