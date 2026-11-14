@@ -107,19 +107,29 @@ public final class SoftNetworkManager {
         state.lastSeen = gameTime;
 
         int version = versionOf(network);
+        boolean cacheMissing = !state.hasCache;
         boolean dirty = version != state.cachedVersion;
+        if (dirty) {
+            // Wake immediately even if the rebuild cooldown postpones the new
+            // K/C snapshot; otherwise a recently sleeping network can ignore a
+            // freshly added load.
+            state.core.wake();
+        }
         if (dirty && state.lastRebuild != Long.MIN_VALUE
                 && gameTime - state.lastRebuild < settings.topologyRebuildCooldown()) {
             dirty = false;
         }
 
-        if (dirty || !state.hasCache) {
+        if (dirty || cacheMissing) {
             if (!rebuildCache(state, network, settings)) {
                 return;
             }
             state.cachedVersion = version;
             state.lastRebuild = gameTime;
             state.hasCache = true;
+            // A load/topology/control change must wake a sleeping network even
+            // when the numeric topology version did not change.
+            state.core.wake();
         }
 
         float omega0 = state.ratedSpeed;
@@ -297,6 +307,7 @@ public final class SoftNetworkManager {
         if (state != null) {
             state.cachedVersion = -1;
             state.hasCache = false;
+            state.core.wake();
         }
     }
 
@@ -313,11 +324,13 @@ public final class SoftNetworkManager {
             if (state != null) {
                 state.hasCache = false;
                 state.cachedVersion = -1;
+                state.core.wake();
             }
         } else {
             levelStates.values().forEach(state -> {
                 state.hasCache = false;
                 state.cachedVersion = -1;
+                state.core.wake();
             });
         }
     }
@@ -406,6 +419,7 @@ public final class SoftNetworkManager {
             if (state != null) {
                 state.hasCache = false;
                 state.cachedVersion = -1;
+                state.core.wake();
             }
         }
     }

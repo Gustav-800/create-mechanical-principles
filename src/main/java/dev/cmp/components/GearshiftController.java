@@ -12,17 +12,17 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 /**
  * Gearshift transition state machine.
  *
- * <p>The output side is held at zero for a configurable number of ticks during
- * both the forward-to-reverse and reverse-to-forward transitions. Only then is
- * Create allowed to propagate the new direction. This guarantees the
- * "stop before reversing" ordering without fighting Create's rigid network
- * representation.</p>
+ * <p>The output side is first held at zero for a short transition window, then
+ * reattached in the new direction and ramped from zero to the new target speed.
+ * Create's split-shaft block still owns direction selection; the ramp only
+ * writes the temporary speed of the members reachable from the output face.</p>
  */
 public final class GearshiftController {
     private final GearshiftBlockEntity gearshift;
-    private TransmissionPhase phase;
+    private TransmissionPhase phase = TransmissionPhase.IDLE;
     private Boolean lastPowered;
     private int countdown;
+    private SoftOutputRamp ramp;
 
     public GearshiftController(GearshiftBlockEntity gearshift) {
         this.gearshift = gearshift;
@@ -33,16 +33,29 @@ public final class GearshiftController {
             return;
         }
         boolean powered = gearshift.getBlockState().getValue(BlockStateProperties.POWERED);
+        if (!gearshift.hasSource()) {
+            cancelRamp();
+            phase = powered ? TransmissionPhase.REVERSED : TransmissionPhase.FORWARD;
+            lastPowered = powered;
+            return;
+        }
         ensureState(powered);
-        if (isTransitioning()) {
+
+        if (phase == TransmissionPhase.REVERSING || phase == TransmissionPhase.RETURNING) {
             if (countdown > 0) {
                 countdown--;
             }
             if (countdown <= 0) {
+                beginRamp(powered);
+            }
+        } else if (phase == TransmissionPhase.RAMPING && ramp != null) {
+            ramp.step();
+            if (!ramp.isActive()) {
+                ramp = null;
                 phase = powered ? TransmissionPhase.REVERSED : TransmissionPhase.FORWARD;
-                RotationPropagator.handleAdded(gearshift.getLevel(), gearshift.getBlockPos(), gearshift);
             }
         }
+        lastPowered = powered;
     }
 
     public float adjustModifier(Direction face, float original) {
@@ -51,14 +64,16 @@ public final class GearshiftController {
         }
         boolean powered = gearshift.getBlockState().getValue(BlockStateProperties.POWERED);
         ensureState(powered);
-        if (isTransitioning()) {
+
+        if (phase == TransmissionPhase.REVERSING || phase == TransmissionPhase.RETURNING) {
             return 0.0F;
         }
+        // During RAMPING the new direction is intentionally visible to Create;
+        // the temporary output speed is managed by the ramp.
         return original;
     }
 
     private void ensureState(boolean powered) {
-        ComponentSettings settings = CMPConfig.components();
         if (lastPowered == null) {
             lastPowered = powered;
             phase = powered ? TransmissionPhase.REVERSED : TransmissionPhase.FORWARD;
@@ -68,16 +83,38 @@ public final class GearshiftController {
             return;
         }
         lastPowered = powered;
+        cancelRamp();
 
+        ComponentSettings settings = CMPConfig.components();
         if (settings.refuseReverseWithForeignSource() && hasForeignSourceOnOutput()) {
             phase = powered ? TransmissionPhase.REVERSED : TransmissionPhase.FORWARD;
             countdown = 0;
             return;
         }
 
-        int ticks = Math.max(1, Math.round(settings.reverseTransitionTicks() / settings.reverseAccelMultiplier()));
         phase = powered ? TransmissionPhase.REVERSING : TransmissionPhase.RETURNING;
-        countdown = Math.max(0, ticks);
+        int ticks = Math.max(0,
+                Math.round(settings.reverseTransitionTicks() / settings.reverseAccelMultiplier()));
+        countdown = ticks;
+    }
+
+    private void beginRamp(boolean powered) {
+        phase = TransmissionPhase.RAMPING;
+        ComponentSettings settings = CMPConfig.components();
+        float fraction = Math.max(0.10F, Math.min(0.75F,
+                settings.clutchAccelFraction() * settings.reverseAccelMultiplier()));
+        ramp = new SoftOutputRamp(gearshift, gearshift.getSourceFacing(), fraction);
+        if (!ramp.begin()) {
+            ramp = null;
+            phase = powered ? TransmissionPhase.REVERSED : TransmissionPhase.FORWARD;
+        }
+    }
+
+    private void cancelRamp() {
+        if (ramp != null) {
+            ramp.cancel();
+            ramp = null;
+        }
     }
 
     private boolean hasForeignSourceOnOutput() {
@@ -105,7 +142,9 @@ public final class GearshiftController {
     }
 
     public boolean isTransitioning() {
-        return phase == TransmissionPhase.REVERSING || phase == TransmissionPhase.RETURNING;
+        return phase == TransmissionPhase.REVERSING
+                || phase == TransmissionPhase.RETURNING
+                || phase == TransmissionPhase.RAMPING;
     }
 
     public TransmissionPhase phase() {

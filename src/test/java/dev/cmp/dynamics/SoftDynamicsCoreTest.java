@@ -89,6 +89,18 @@ class SoftDynamicsCoreTest {
     }
 
     @Test
+    void stalledNetworkStopsAtExactlyZero() {
+        SoftDynamicsCore.State state = new SoftDynamicsCore.State();
+        state.seed(0.02F);
+        for (int i = 0; i < 100; i++) {
+            SoftDynamicsCore.step(state,
+                    new SoftDynamicsCore.Inputs(0.0F, 10.0F, 8.0F, true), SETTINGS);
+        }
+        assertTrue(state.stalled());
+        assertEquals(0.0F, state.omega(), 1.0E-6F);
+    }
+
+    @Test
     void equilibriumEntersSleepAfterConfiguredTicks() {
         SoftDynamicsCore.State state = new SoftDynamicsCore.State();
         state.seed(8.0F);

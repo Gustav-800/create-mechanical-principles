@@ -93,7 +93,7 @@ Ponder、Flywheel、Registrate 由 Create 自身提供。单独安装本模组�
 |---|---:|---|
 | `clutchSoftStart` | `true` | 离合器软启动 |
 | `clutchEngageDelayTicks` | `5` | 离合器输出保持断开的 tick 数 |
-| `clutchAccelFraction` | `0.15` | 离合器输出目标速度的比例加速度（每 tick；约 7 tick 到全速） |
+| `clutchAccelFraction` | `0.35` | 离合器输出目标速度的比例加速度（每 tick；约 3 tick 到全速）。位置：存档 `serverconfig/create_mechanical_principles-server.toml` 的 `[components]` |
 | `syncEpsilon` | `0.5` | 同步/冲突判定速度差 |
 | `autoMergeOnSync` | `true` | 同步后合并为单一网络（第一版由 Create 原生网络行为满足） |
 | `reverseAccelMultiplier` | `1.5` | 反转过渡加速度倍数（1.0–3.0） |
@@ -160,7 +160,7 @@ a = max(|a|, accelFloor × ω0) while approaching
 ## 已知限制
 
 1. **动态结构（Contraption）**上的软动力学未实现；`enableOnContraptions` 为保留字段。
-2. **离合器/反转齿轮箱**是安全的第一版模型：离合器是“延时 + 输出侧比例斜坡”，反转齿轮箱是“零输出停留后反向”，不是两侧独立网络的完整滑差模型。Create 的 `SplitShaftBlockEntity` 只有一个速度字段，真正双网络滑差需要额外的网络拆分层。
+2. **离合器/反转齿轮箱**是安全的第一版模型：离合器是“延时 + 输出侧比例斜坡”，反转齿轮箱是“零输出停留 + 新方向比例斜坡”，不是两侧独立网络的完整滑差模型。Create 的 `SplitShaftBlockEntity` 只有一个速度字段，真正双网络滑差需要额外的网络拆分层。
 3. **可编程齿轮箱**的梯形/三角形速度规划已在 `SequencerPlan` 中实现并有单元测试；0.1.0 运行时不再注入零输出门控（此前的门控会导致输出侧无法重新接入动力），仍使用 Create 原生执行，严重过载暂停重规划尚未接入。
 4. **可调链式传动箱**的连续比值变化率尚未驱动每 tick 的传播；`maxRatioDelta` 已预留并校验。
 5. **转速控制器**只做目标速度削减，不参与完整的多网络约束解算。

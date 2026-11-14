@@ -11,6 +11,17 @@
 - Removed the sequenced gearshift zero-output startup gate. It prevented the
   output side from being reattached by Create, so the gearbox could not transmit
   power; native sequencer execution is restored.
+- Fixed sleeping networks ignoring a freshly added load (the hot-plug
+  transition appeared to have no dynamic acceleration).
+- Overloaded networks now snap to exactly 0 RPM instead of sleeping at a tiny
+  residual such as `1.19e-4 RPM`, so the stress meter reads zero and the
+  original overstress condition is visually consistent. Recovery is preserved:
+  the manager wakes on load/topology changes and ramps the source back up.
+- Gearshift now performs a real stop-then-ramp reversal on the output side, in
+  addition to the zero-output transition window.
+- Clutch ramp default raised from `0.15` to `0.35` (about 3 ticks to full); the
+  value is in the save's `serverconfig/create_mechanical_principles-server.toml`
+  under `[components] clutchAccelFraction`.
 - Version changed to 0.1.0.
 - Added overload latching/hysteresis, stall entry/recovery, acceleration ceilings
   and a minimum acceleration floor.

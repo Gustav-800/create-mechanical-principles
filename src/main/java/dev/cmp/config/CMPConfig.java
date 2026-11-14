@@ -112,8 +112,8 @@ public final class CMPConfig {
                 .define("clutchSoftStart", true);
         CLUTCH_ENGAGE_DELAY = server.comment("Ticks the clutch output stays disengaged while starting.")
                 .defineInRange("clutchEngageDelayTicks", 5, 0, 200);
-        CLUTCH_ACCEL = server.comment("Clutch ramp fraction per tick. 0.15 reaches full speed in about 7 ticks.")
-                .defineInRange("clutchAccelFraction", 0.15D, 0.001D, 1.0D);
+        CLUTCH_ACCEL = server.comment("Clutch ramp fraction per tick. 0.35 reaches full speed in about 3 ticks.")
+                .defineInRange("clutchAccelFraction", 0.35D, 0.001D, 1.0D);
         SYNC_EPSILON = server.comment("Speed difference at which a soft-start component is considered synced, in RPM.")
                 .defineInRange("syncEpsilon", 0.5D, 0.0001D, 64.0D);
         AUTO_MERGE_ON_SYNC = server.comment("Merge the two sides into one rigid network once synced.")

@@ -19,6 +19,7 @@ import dev.cmp.config.DynamicsSettings;
  */
 public final class SoftDynamicsCore {
     public static final float EPSILON = 1.0E-5F;
+    public static final float STOP_EPSILON = 0.01F;
     private static final float TARGET_EPSILON = 1.0E-4F;
 
     public enum Zone {
@@ -105,6 +106,14 @@ public final class SoftDynamicsCore {
             this.sleepTicks = 0;
             this.zone = Zone.STEADY;
             this.initialised = false;
+        }
+
+        /**
+         * Clears the settled counter after a topology, load, or control change.
+         * The current omega is deliberately preserved.
+         */
+        public void wake() {
+            this.sleepTicks = 0;
         }
     }
 
@@ -197,6 +206,14 @@ public final class SoftDynamicsCore {
             float signed = Math.copySign(magnitude, error);
             omega += signed;
             acceleration = signed;
+        }
+
+        if ((state.stalled || state.overloadLatched) && state.omega <= STOP_EPSILON) {
+            // Do not sleep at a tiny fraction of an RPM: make the network truly
+            // stopped instead of leaking values such as 1.19e-4 RPM into gauges.
+            state.omega = 0.0F;
+            omega = 0.0F;
+            acceleration = 0.0F;
         }
 
         if (Math.abs(target - omega) <= TARGET_EPSILON) {
