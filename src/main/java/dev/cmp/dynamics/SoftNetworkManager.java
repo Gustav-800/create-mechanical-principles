@@ -381,6 +381,29 @@ public final class SoftNetworkManager {
         return state.core.stalled() || state.core.zone() == SoftDynamicsCore.Zone.STALLED;
     }
 
+    /**
+     * Whether this block entity belongs to a network the soft solver has
+     * actually taken over. Used by the getSpeed bridge so unmanaged or broken
+     * networks keep Create's original hard-overstress semantics.
+     */
+    public static boolean isManaged(KineticBlockEntity be) {
+        if (be == null || be.getLevel() == null) {
+            return false;
+        }
+        if (be.getLevel().isClientSide()) {
+            return CMPConfig.dynamics().enabled() && !CMPConfig.isSafeMode();
+        }
+        if (be.network == null) {
+            return false;
+        }
+        Map<Long, NetworkState> levelStates = STATES.get(be.getLevel());
+        if (levelStates == null) {
+            return false;
+        }
+        NetworkState state = levelStates.get(be.network);
+        return state != null && state.hasCache && state.core.initialised();
+    }
+
     public static void onServerTick(MinecraftServer server) {
         if (!CMPConfig.dynamics().enabled() && wasActive) {
             restoreAll();

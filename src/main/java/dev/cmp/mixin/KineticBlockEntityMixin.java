@@ -1,7 +1,6 @@
 package dev.cmp.mixin;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import dev.cmp.config.CMPConfig;
 import dev.cmp.dynamics.SoftNetworkManager;
 import dev.cmp.dynamics.SoftSpeedAccess;
 import net.minecraft.core.HolderLookup;
@@ -91,10 +90,13 @@ public abstract class KineticBlockEntityMixin implements SoftSpeedAccess {
      */
     @Inject(method = "getSpeed", at = @At("RETURN"), cancellable = true)
     private void cmp$keepSoftSpeedVisible(CallbackInfoReturnable<Float> cir) {
-        if (!overStressed || !CMPConfig.dynamics().enabled() || CMPConfig.isSafeMode()) {
+        if (!overStressed) {
             return;
         }
         KineticBlockEntity self = (KineticBlockEntity) (Object) this;
+        if (!SoftNetworkManager.isManaged(self)) {
+            return;
+        }
         Level level = self.getLevel();
         if (level != null && level.tickRateManager().isFrozen()) {
             cir.setReturnValue(0.0F);
