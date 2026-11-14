@@ -3,7 +3,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.148' apply false
 }
 
-version = project.findProperty('mod_version') ?: '1.0.0'
+version = project.findProperty('mod_version') ?: '0.1.0'
 group = project.findProperty('group') ?: 'dev.cmp'
 
 base {

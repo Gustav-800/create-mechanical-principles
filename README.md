@@ -4,7 +4,7 @@
 
 Create 的应力网络原本使用“超载即卡死”的硬判定。本模组把网络级过载改造成连续动力学：过载时网络不会瞬间归零，而是按统一的加速度模型平滑降到应力平衡转速；负载消失后再平滑加速回空载转速。所有速度仍写回 Create 的 `speed` 字段，因此转速表、应力表和现有机器读取到的都是实际值。
 
-> 版本 1.0 是“动力学核心 + 安全组件过渡”的第一个可发布版本。开发任务书中明确排除的内容仍未实现，详见[已知限制](#已知限制)。
+> 版本 0.1.0 是“动力学核心 + 安全组件过渡”的第一个可发布版本。开发任务书中明确排除的内容仍未实现，详见[已知限制](#已知限制)。
 
 ## 玩法变化
 
@@ -39,7 +39,7 @@ Ponder、Flywheel、Registrate 由 Create 自身提供。单独安装本模组�
 ./gradlew build
 ```
 
-产物在 `build/libs/create-mechanical-principles-1.0.0.jar`。构建使用 NeoForge ModDevGradle 2.0.148、Gradle 8.14.3 和 Java 21。
+产物在 `build/libs/create-mechanical-principles-0.1.0.jar`。构建使用 NeoForge ModDevGradle 2.0.148、Gradle 8.14.3 和 Java 21。
 
 如果开发机无法访问 NeoForge Maven，可把本地 21.1.262 安装所需的编译 jar 放入 `libs/compile/`，然后用离线编译模式：
 

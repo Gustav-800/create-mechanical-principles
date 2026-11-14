@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 — first version
+## 0.1.0 — first version
 
 - Added the network-level soft dynamics solver: overloaded networks decelerate to
   `ω_eq = C / K` instead of being hard-stopped by Create's overstress flag.
