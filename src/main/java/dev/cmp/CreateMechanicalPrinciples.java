@@ -6,7 +6,6 @@ import dev.cmp.hotplug.HotPlugGuard;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +22,6 @@ public final class CreateMechanicalPrinciples {
 
     public CreateMechanicalPrinciples(IEventBus modEventBus, ModContainer modContainer) {
         CMPConfig.register(modContainer);
-        NeoForge.EVENT_BUS.register(CMPEvents.class);
         LOGGER.info("Create: Mechanical Principles loaded; soft dynamics attached to Create's kinetic networks.");
     }
 
